@@ -16,7 +16,7 @@
         "@turf/along": "^7.2.0",
         "@turf/clean-coords": "^7.2.0",
         "@turf/destination": "^7.2.0",
-        "@turf/helpers": "^7.2.0",
+        "@turf/helpers": "^7.3.1",
         "@turf/length": "^7.2.0",
         "@turf/turf": "^7.2.0",
         "ol": "latest"
