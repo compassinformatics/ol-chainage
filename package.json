@@ -1,11 +1,16 @@
 {
-    "name": "ol-chainage",
+    "name": "@compassinformatics/ol-chainage",
     "version": "0.1.0",
     "type": "module",
     "main": "dist/index.js",
     "exports": {
         ".": "./dist/index.js"
     },
+    "license": "GPL-3.0",
+    "bugs": {
+        "url": "https://github.com/compassinformatics/ol-chainage/issues"
+    },
+    "homepage": "https://github.com/compassinformatics/ol-chainage",
     "scripts": {
         "build": "shx mkdir -p dist && shx cp src/index.js dist/index.js",
         "lint": "eslint src/**/*.js example/**/*.js",
