@@ -1,0 +1,17 @@
+{
+  "name": "ol-chainage-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "ol-chainage": "file:..",
+    "proj4": "^2.19.10"
+  }
+}

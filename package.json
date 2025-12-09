@@ -1,0 +1,31 @@
+{
+    "name": "ol-chainage",
+    "version": "0.1.0",
+    "type": "module",
+    "main": "dist/index.js",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "shx mkdir -p dist && shx cp src/index.js dist/index.js",
+        "lint": "eslint src/**/*.js example/**/*.js",
+        "lint:fix": "eslint src/**/*.js example/**/*.js --fix",
+        "format": "prettier --write eslint.config.js src/**/*.js example/**/*.js"
+    },
+    "dependencies": {
+        "@turf/along": "^7.2.0",
+        "@turf/clean-coords": "^7.2.0",
+        "@turf/destination": "^7.2.0",
+        "@turf/helpers": "^7.2.0",
+        "@turf/length": "^7.2.0",
+        "@turf/turf": "^7.2.0",
+        "ol": "latest"
+    },
+    "devDependencies": {
+        "eslint": "^9.39.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.4",
+        "prettier": "^3.7.4",
+        "shx": "^0.4.0"
+    }
+}

@@ -1,0 +1,122 @@
+import './style.css';
+import { register } from 'ol/proj/proj4.js';
+import proj4 from 'proj4';
+import { get as getProjection } from 'ol/proj.js';
+import TileLayer from 'ol/layer/Tile.js';
+import XYZ from 'ol/source/XYZ.js';
+import TileGrid from 'ol/tilegrid/TileGrid.js';
+import Map from 'ol/Map.js';
+import View from 'ol/View.js';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
+import { defaults as defaultControls, FullScreen } from 'ol/control.js';
+import {
+  defaults as defaultInteractions,
+  DragRotateAndZoom,
+} from 'ol/interaction.js';
+import GeoJSON from 'ol/format/GeoJSON';
+import { Stroke, Style } from 'ol/style';
+
+import { transform } from 'ol/proj.js';
+
+import { addChainageMarkers } from 'ol-chainage';
+
+// setup ITM projection
+proj4.defs(
+  'EPSG:2157',
+  '+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=0.99982 +x_0=600000 +y_0=750000 ' +
+    '+ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
+register(proj4);
+
+const projection = getProjection('EPSG:2157');
+
+const aerialTiles = new TileLayer({
+  source: new XYZ({
+    url: 'https://utility.arcgis.com/usrsvcs/servers/c16c7a02066443e498956af55a3a0d1c/rest/services/MapGenieDigitalGlobeImagery2011to2013ITM/MapServer/tile/{z}/{y}/{x}',
+    projection: 'EPSG:2157',
+    attributions: '&copy; Tailte Éireann',
+    extent: [421849.81, 515251.59, 785108.1, 968015.39],
+    tileGrid: new TileGrid({
+      origin: [-5022200.0, 4821100.0],
+      resolutions: [
+        1058.3354500042335, 661.4596562526459, 330.72982812632296,
+        158.75031750063502, 105.83354500042334, 52.91677250021167,
+        26.458386250105836, 13.229193125052918, 6.614596562526459,
+        2.6458386250105836, 1.3229193125052918, 0.6614596562526459,
+        0.26458386250105836,
+      ],
+    }),
+  }),
+});
+
+const map = new Map({
+  target: 'map',
+  controls: defaultControls().extend([new FullScreen()]),
+  interactions: defaultInteractions().extend([new DragRotateAndZoom()]),
+  layers: [aerialTiles],
+  view: new View({
+    projection: projection,
+    center: [714262.18, 728918.11],
+    zoom: 18,
+  }),
+});
+
+// create a new layer
+const exampleSource = new VectorSource();
+const exampleLayer = new VectorLayer({
+  source: exampleSource,
+  style: new Style({
+    stroke: new Stroke({
+      color: 'yellow',
+      width: 3,
+    }),
+  }),
+});
+
+fetch('./sample.json')
+  .then((response) => response.json())
+  .then((geojsonData) => {
+    const features = new GeoJSON().readFeatures(geojsonData, {
+      dataProjection: 'EPSG:2157', // projection of the GeoJSON file
+    });
+    exampleSource.addFeatures(features);
+    map.addLayer(exampleLayer);
+
+    // gather all coordinates to a single line
+    const allCoords = [];
+
+    features.forEach((feature) => {
+      const geom = feature.getGeometry().clone();
+
+      const coords = geom.getCoordinates();
+      if (feature.get('withDirection') === false) {
+        coords.reverse();
+      }
+      coords.forEach((coord) => {
+        allCoords.push(transform(coord, 'EPSG:2157', 'EPSG:4326'));
+      });
+    });
+
+    const ticks = addChainageMarkers(allCoords);
+
+    if (ticks) {
+      const chainageSource = new VectorSource();
+      chainageSource.addFeatures(ticks);
+      const chainageLayer = new VectorLayer({
+        source: chainageSource,
+      });
+      map.addLayer(chainageLayer);
+    }
+
+    const extent = exampleSource.getExtent();
+    if (!isNaN(extent[0])) {
+      // check for a valid extent
+      map.getView().fit(extent, {
+        padding: [50, 50, 50, 50],
+        maxZoom: 18,
+        duration: 500,
+      });
+    }
+  })
+  .catch((err) => console.error('Error loading GeoJSON:', err));
