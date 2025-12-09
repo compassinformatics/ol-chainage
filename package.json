@@ -6,6 +6,11 @@
     "exports": {
         ".": "./dist/index.js"
     },
+    "files": [
+        "dist",
+        "package.json",
+        "README.md"
+    ],
     "license": "GPL-3.0",
     "bugs": {
         "url": "https://github.com/compassinformatics/ol-chainage/issues"
