@@ -122,7 +122,7 @@ function main() {
     }),
   });
 
-  fetch('/sample.json')
+  fetch('./sample.json')
     .then((response) => response.json())
     .then((geojsonData) => {
       const features = new GeoJSON().readFeatures(geojsonData, {
