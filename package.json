@@ -36,7 +36,7 @@
         "@turf/length": "^7.3.1",
         "@turf/line-slice-along": "^7.3.1",
         "@turf/turf": "^7.3.1",
-        "ol": "10.4.0",
+        "ol": "10.7.0",
         "proj4": "^2.20.2"
     },
     "devDependencies": {
