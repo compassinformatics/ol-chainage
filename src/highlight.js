@@ -27,8 +27,8 @@ export class LineSliceHighlight {
       options.style ||
       new Style({
         stroke: new Stroke({
-          color: 'red',
-          width: 2,
+          color: 'deeppink',
+          width: 4,
         }),
       });
 

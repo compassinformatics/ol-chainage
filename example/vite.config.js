@@ -13,7 +13,8 @@ export default {
   },
   resolve: {
     alias: {
-      'ol-chainage': path.resolve(__dirname, '../src'),
+      // when developing uncomment below to work directly with the source files
+      // 'ol-chainage': path.resolve(__dirname, '../src'),
     },
   },
 };

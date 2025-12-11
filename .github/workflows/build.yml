@@ -44,3 +44,9 @@ jobs:
       - name: Build example app
         working-directory: ./example
         run: npm run build
+
+      - name: Deploy example to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./example/dist

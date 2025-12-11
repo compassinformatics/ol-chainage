@@ -21,7 +21,7 @@ import {
   addChainageMarkers,
   LineSliceHighlight,
   convertCoords,
-} from 'ol-chainage';
+} from '@compassinformatics/ol-chainage';
 
 // setup ITM projection
 proj4.defs(
@@ -35,6 +35,7 @@ register(proj4);
 let map, lineGeom;
 const highlighter = new LineSliceHighlight();
 
+// customise the highlight style if required
 highlighter.setStyle(
   new Style({
     stroke: new Stroke({
@@ -175,7 +176,7 @@ function main() {
           duration: 500,
         });
       }
-      //      updateHighlight();
+      updateHighlight();
     })
     .catch((err) => console.error('Error loading GeoJSON:', err));
 }
