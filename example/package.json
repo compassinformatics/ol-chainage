@@ -13,7 +13,7 @@
         "vite": "^7.1.7"
     },
     "dependencies": {
-        "@compassinformatics/ol-chainage": "^0.1.2",
+        "@compassinformatics/ol-chainage": "^0.1.1",
         "ol": "10.4.0",
         "proj4": "^2.19.10"
     }
