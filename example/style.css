@@ -1,4 +1,4 @@
-@import 'node_modules/ol-chainage/node_modules/ol/ol.css';
+@import 'node_modules/ol/ol.css';
 
 html,
 body {
@@ -11,3 +11,36 @@ body {
   bottom: 0;
   width: 100%;
 }
+
+/* Floating panel */
+#measure-panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    z-index: 1000;
+    font-family: sans-serif;
+}
+
+    #measure-panel label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+    }
+
+    #measure-panel input {
+        width: 120px;
+        margin-bottom: 8px;
+        padding: 4px 6px;
+        font-size: 1rem;
+    }
+
+    #measure-panel button {
+        width: 100%;
+        padding: 6px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
