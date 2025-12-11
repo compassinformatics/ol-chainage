@@ -1,15 +1,17 @@
 {
     "name": "@compassinformatics/ol-chainage",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "type": "module",
-    "main": "dist/index.js",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.esm.js",
     "exports": {
-        ".": "./dist/index.js"
+        "import": "./dist/index.esm.js",
+        "require": "./dist/index.umd.js"
     },
     "files": [
         "dist",
-        "package.json",
-        "README.md"
+        "README.md",
+        "package.json"
     ],
     "license": "GPL-3.0",
     "bugs": {
@@ -17,25 +19,33 @@
     },
     "homepage": "https://github.com/compassinformatics/ol-chainage",
     "scripts": {
-        "build": "shx mkdir -p dist && shx cp src/index.js dist/index.js",
+        "build": "rollup -c rollup.config.js",
         "lint": "eslint src/**/*.js example/**/*.js",
         "lint:fix": "eslint src/**/*.js example/**/*.js --fix",
         "format": "prettier --write eslint.config.js src/**/*.js example/**/*.js"
     },
     "dependencies": {
-        "@turf/along": "^7.2.0",
-        "@turf/clean-coords": "^7.2.0",
-        "@turf/destination": "^7.2.0",
-        "@turf/helpers": "^7.2.0",
-        "@turf/length": "^7.2.0",
-        "@turf/turf": "^7.2.0",
-        "ol": "latest"
+        "@turf/along": "^7.3.1",
+        "@turf/clean-coords": "^7.3.1",
+        "@turf/destination": "^7.3.1",
+        "@turf/helpers": "^7.3.1",
+        "@turf/length": "^7.3.1",
+        "@turf/line-slice-along": "^7.3.1",
+        "@turf/turf": "^7.3.1",
+        "ol": "10.4.0",
+        "proj4": "^2.20.2"
     },
     "devDependencies": {
+        "@babel/core": "^7.28.5",
+        "@babel/preset-env": "^7.28.5",
+        "@rollup/plugin-babel": "^6.1.0",
+        "@rollup/plugin-commonjs": "^29.0.0",
+        "@rollup/plugin-node-resolve": "^16.0.3",
         "eslint": "^9.39.1",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "prettier": "^3.7.4",
+        "rollup": "^4.53.3",
         "shx": "^0.4.0"
     }
 }
