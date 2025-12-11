@@ -13,24 +13,41 @@ npm install
 npm run build
 ```
 
-## Example
-
-To run:
+## Lint and Format
 
 ```
-cd example
-npm install
-npm start
-# http://localhost: 1871
+npm run lint:fix
+npm run format
 ```
 
+## Usage
 
-To build:
+```js
+import {
+  addChainageMarkers,
+  LineSliceHighlight
+} from 'ol-chainage';
+
+const ticks = addChainageMarkers(coords, map.getView().getProjection());
+const chainageSource = new VectorSource();
+chainageSource.addFeatures(ticks);
+const chainageLayer = new VectorLayer({
+    source: chainageSource,
+    minZoom: 18,
+});
+map.addLayer(chainageLayer);
 
 ```
-cd example
-npm run build
-```
 
-Then deploy the contents of the `dist` directory to your server. 
-You can also run `npm run serve` to serve the results of the `dist` directory for preview.
+Also see the example application.
+
+The module can also be used in older applications using the .umd.js file. 
+
+```js
+<script src="node_modules/ol-chainage/dist/index.umd.js"></script>
+
+<script>
+  // Use via global
+  const chainage = OlChainage.createChainage(...);
+</script>
+```
