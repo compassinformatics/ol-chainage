@@ -14,6 +14,10 @@
         "package.json"
     ],
     "license": "GPL-3.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/compassinformatics/ol-chainage.git"
+    },
     "bugs": {
         "url": "https://github.com/compassinformatics/ol-chainage/issues"
     },
