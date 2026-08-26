@@ -7,6 +7,7 @@ import VectorSource from 'ol/source/Vector.js';
 import { getLength as getSphereLength } from 'ol/sphere.js';
 import lineSliceAlong from '@turf/line-slice-along';
 import { transform } from 'ol/proj.js';
+
 export function convertCoords(coords, fromProj, toProj) {
   const projectedCoords = [];
 
@@ -15,6 +16,26 @@ export function convertCoords(coords, fromProj, toProj) {
   });
 
   return projectedCoords;
+}
+
+/**
+ * Turf measures on a sphere of radius 6371008.8 m, whereas geometries may be
+ * projected geometries. Calculate the factor between the two so chainage distances can be
+ * corrected.
+ *
+ * @param {Array<import("ol/coordinate.js").Coordinate>} coords4326
+ * @param {number} [referenceLength] True length of the line in metres
+ * @returns {number} Factor to multiply chainage distances by  or 1 if no
+ *   referenceLength is supplied
+ */
+export function getChainageScale(coords4326, referenceLength) {
+  if (!referenceLength) {
+    return 1;
+  }
+  const spherical = getSphereLength(new LineString(coords4326), {
+    projection: 'EPSG:4326',
+  });
+  return spherical / referenceLength;
 }
 
 export class LineSliceHighlight {
@@ -37,40 +58,60 @@ export class LineSliceHighlight {
 
   /**
    * Calculates the slice of geometry from start to end (in meters)
-   * @param {LineString} geometry
-   * @param {number} start
-   * @param {number} end
-   * @returns {LineString}
+   * @param {LineString} geometry - OpenLayers LineString in EPSG:4326
+   * @param {number} start - start distance in meters
+   * @param {number} end - end distance in meters
+   * @param {import("ol/proj/Projection.js").default} [mapProjection] - the
+   *   projection to return the slice in. Defaults to EPSG:4326.
+   * @param {number} [referenceLength] - true length of the line in metres.
+   * @returns {LineString} - OpenLayers LineString slice
    */
-  calculateSliceOpenLayers(geometry, start, end) {
+  calculateSliceOpenLayers(
+    geometry,
+    start,
+    end,
+    mapProjection,
+    referenceLength = 1,
+  ) {
+    const from = start * scale;
+    const to = end * scale;
+
     let length = 0;
     const coordinates = [];
 
     geometry.forEachSegment((a, b) => {
       const segment = new LineString([a, b]);
-      const segmentLength = getSphereLength(segment);
+      const segmentLength = getSphereLength(segment, {
+        projection: 'EPSG:4326',
+      });
 
-      if (length <= start && start < length + segmentLength) {
+      if (length <= from && from < length + segmentLength) {
         // start is inside this segment
         coordinates.push(
-          segment.getCoordinateAt((start - length) / segmentLength),
+          segment.getCoordinateAt((from - length) / segmentLength),
         );
       }
 
-      if (start <= length + segmentLength && length + segmentLength <= end) {
+      if (from <= length + segmentLength && length + segmentLength <= to) {
         // whole segment endpoint is inside the slice
         coordinates.push(b.slice());
       }
 
-      if (length <= end && end < length + segmentLength) {
+      if (length <= to && to < length + segmentLength) {
         // end is inside this segment
         coordinates.push(
-          segment.getCoordinateAt((end - length) / segmentLength),
+          segment.getCoordinateAt((to - length) / segmentLength),
         );
       }
 
       length += segmentLength;
     });
+
+    if (mapProjection && mapProjection.getCode() !== 'EPSG:4326') {
+      return new LineString(
+        convertCoords(coordinates, 'EPSG:4326', mapProjection),
+      );
+    }
 
     return new LineString(coordinates);
   }
@@ -81,9 +122,10 @@ export class LineSliceHighlight {
    * @param {number} start - start distance in meters
    * @param {number} end - end distance in meters
    * @param {ol.proj} mapProjection - the map projection object
+   * @param {number} [referenceLength] - true length of the line in metres
    * @returns {LineString} - OpenLayers LineString slice
    */
-  calculateSlice(geometry, start, end, mapProjection) {
+  calculateSlice(geometry, start, end, mapProjection, referenceLength = null) {
     // Convert OL LineString coordinates to GeoJSON LineString
     const coords = geometry.getCoordinates().map(([x, y]) => [x, y]);
     const geojsonLine = {
@@ -95,8 +137,12 @@ export class LineSliceHighlight {
       properties: {},
     };
 
+    const scale = getChainageScale(coords, referenceLength);
+
     // Turf expects distances in meters if the coordinates are in WGS84 (lon/lat)
-    const sliced = lineSliceAlong(geojsonLine, start, end, { units: 'meters' });
+    const sliced = lineSliceAlong(geojsonLine, start * scale, end * scale, {
+      units: 'meters',
+    });
 
     // Convert back to OpenLayers LineString
 
@@ -118,11 +164,22 @@ export class LineSliceHighlight {
    * @param {number} start
    * @param {number} end
    * @param {import("ol/Map").default} map
+   * @param {boolean} [useOpenLayers] - use the OL slicing path instead of turf
+   * @param {number} [referenceLength] - true length of the line in metres
    */
-  highlightSlice(geometry, start, end, map, useOpenLayers) {
+  highlightSlice(
+    geometry,
+    start,
+    end,
+    map,
+    useOpenLayers = false,
+    referenceLength = null,
+  ) {
     if (!map) {
       throw new Error('Map not provided');
     }
+
+    const mapProjection = map.getView().getProjection();
 
     if (!this.layer) {
       this.layer = new VectorLayer({
@@ -138,12 +195,23 @@ export class LineSliceHighlight {
 
     if (useOpenLayers === true) {
       feature = new Feature(
-        this.calculateSliceOpenLayers(geometry, start, end),
+        this.calculateSliceOpenLayers(
+          geometry,
+          start,
+          end,
+          mapProjection,
+          referenceLength,
+        ),
       );
     } else {
-      const mapProjection = map.getView().getProjection();
       feature = new Feature(
-        this.calculateSlice(geometry, start, end, mapProjection),
+        this.calculateSlice(
+          geometry,
+          start,
+          end,
+          mapProjection,
+          referenceLength,
+        ),
       );
     }
 

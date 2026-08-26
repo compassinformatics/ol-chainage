@@ -2,6 +2,7 @@ import './style.css';
 import { register } from 'ol/proj/proj4.js';
 import proj4 from 'proj4';
 import { get as getProjection } from 'ol/proj.js';
+import { getLength } from 'ol/sphere.js';
 import TileLayer from 'ol/layer/Tile.js';
 import XYZ from 'ol/source/XYZ.js';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
@@ -32,7 +33,7 @@ proj4.defs(
 
 register(proj4);
 
-let map, lineGeom;
+let map, lineGeom, geom4326, referenceLength;
 const highlighter = new LineSliceHighlight();
 
 // customise the highlight style if required
@@ -50,21 +51,22 @@ function updateHighlight() {
   const start = parseFloat(document.getElementById('start-measure').value);
   const end = parseFloat(document.getElementById('end-measure').value);
 
-  if (!lineGeom) return;
+  if (!lineGeom || isNaN(start) || isNaN(end) || end <= start) {
+    highlighter.removeHighlight();
+    return;
+  }
 
-  const allCoords4326 = convertCoords(
-    lineGeom.getCoordinates(),
-    'EPSG:2157',
-    'EPSG:4326',
-  );
-  const geom4326 = new LineString(allCoords4326);
   const useOpenLayers = false;
 
-  if (useOpenLayers) {
-    highlighter.highlightSlice(lineGeom, start, end, map, useOpenLayers);
-  } else {
-    highlighter.highlightSlice(geom4326, start, end, map, useOpenLayers);
-  }
+  // both paths now take EPSG:4326 and correct against the ITM length
+  highlighter.highlightSlice(
+    geom4326,
+    start,
+    end,
+    map,
+    useOpenLayers,
+    referenceLength,
+  );
 }
 
 // attach event listeners to input boxes
@@ -77,6 +79,7 @@ function setupEventHandlers() {
 }
 
 function main() {
+  setupEventHandlers();
   const projection = getProjection('EPSG:2157');
 
   const aerialTiles = new TileLayer({
@@ -152,9 +155,15 @@ function main() {
         map.getView().getProjection(),
         'EPSG:4326',
       );
+
+      geom4326 = new LineString(allCoords4326);
+      // ITM planar length
+      referenceLength = lineGeom.getLength();
+
       const ticks = addChainageMarkers(
         allCoords4326,
         map.getView().getProjection(),
+        referenceLength,
       );
 
       if (ticks) {
@@ -177,9 +186,18 @@ function main() {
         });
       }
       updateHighlight();
+
+      const spherical = getLength(geom4326, { projection: 'EPSG:4326' });
+      console.log(
+        'ITM length:',
+        referenceLength.toFixed(1),
+        'spherical:',
+        spherical.toFixed(1),
+        'scale:',
+        (spherical / referenceLength).toFixed(6),
+      );
     })
     .catch((err) => console.error('Error loading GeoJSON:', err));
 }
 
 main();
-setupEventHandlers();
